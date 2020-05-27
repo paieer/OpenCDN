@@ -1,6 +1,6 @@
 import hashlib
 import string
-from random import random
+import random
 
 from Crypto.Cipher import AES
 from pbkdf2 import PBKDF2
