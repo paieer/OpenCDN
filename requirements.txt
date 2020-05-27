@@ -1,0 +1,4 @@
+flask
+configparser
+pycryptodome
+pbkdf2
