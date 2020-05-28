@@ -1,3 +1,5 @@
+import string
+
 from resources.config_parser import run_config, write_default_config
 from resources.argument_parser import args
 from random import choice as rand_choice
@@ -20,6 +22,10 @@ class Config:
     HASH_ALGO = "sha3_256"
     BASIC_OUT_LINK = f"http://{HOST}:{PORT}"
     MAX_FILE_BYTES = 1024 * 1024 * 50  # 5 mb
+    RANDOM_PRIVATE_KEY_LENGTH = 15
+    ALLOWED_FILENAME_CHARACTERS = (
+        string.ascii_letters + "1234567890" + ",;.:-_<>!\"§$%&()=?\\`´|#'+*@€.ß "
+    )
 
 
 config = Config()
@@ -31,3 +37,5 @@ if args.reset_configuration:
     write_default_config(config, args.configuration_file)
     print("Configuration has been reset")
 config = run_config(config, args.configuration_file)
+if "/" in config.ALLOWED_FILENAME_CHARACTERS:
+    raise ValueError("'/' can not be a part of ALLOWED_FILENAME_CHARACTERS.")

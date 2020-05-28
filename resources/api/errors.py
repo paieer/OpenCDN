@@ -51,3 +51,10 @@ class FileToBig(BasicError):
     name = "file_to_big"
     description = f"The file is to big: {config.MAX_FILE_BYTES} bytes is maximum."
     http_return = 403
+
+
+class AccessDenied(BasicError):
+    id = 7
+    name = "access_denied"
+    description = "The access to the requested content was blocked, because you don't have access to the resource."
+    http_return = 403

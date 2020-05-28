@@ -8,9 +8,9 @@ from pbkdf2 import PBKDF2
 from resources.config import config
 
 
-def generate_random_key():
+def generate_random_key(length):
     key = ""
-    while len(key) < config.RANDOM_KEY_LENGTH:
+    while len(key) < length:
         key += random.choice(list(string.ascii_letters + "01234567890"))
     return key
 
