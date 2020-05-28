@@ -12,6 +12,16 @@ from flask import request
 import re
 
 
+def get_real_ip():
+    ip = request.remote_addr
+    if config.PROXY_REDIRECTING:
+        if "CF-Connecting-IP" in request.headers:
+            ip = request.headers["CF-Connecting-IP"]
+        elif "X-Forwarded-For" in request.headers:
+            ip = request.headers["X-Forwarded-For"]
+    return ip
+
+
 def handle_request_path(path):
     regex = rf"\/[\w{config.ALLOWED_FILENAME_CHARACTERS}]+"
     matches = re.finditer(regex, path, re.MULTILINE)
@@ -29,7 +39,7 @@ def handle_request_path(path):
 def after_request_logging(response: Response):
     logger.log(
         LogType.INFO,
-        f"Request from {request.remote_addr} to {handle_request_path(request.path)}:{request.method} with status {response.status}.",
+        f"Request from {get_real_ip()} to {handle_request_path(request.path)}:{request.method} with status {response.status}.",
     )
     return response
 
@@ -38,7 +48,7 @@ def after_request_logging(response: Response):
 def basic_error_handler(e: BasicError):
     logger.log(
         LogType.INFO,
-        f"Request with error from {request.remote_addr} with error {e.id}:{e.name}.",
+        f"Request with error from {get_real_ip()} with error {e.id}:{e.name}.",
     )
     return jsonify(e.to_json()), e.http_return
 

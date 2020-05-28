@@ -2,6 +2,7 @@ from os import mkdir
 
 from werkzeug.utils import secure_filename
 
+from resources.api.authentication import private_key_file_name
 from resources.api.encryption import (
     generate_random_key,
     hash_key,
@@ -10,7 +11,14 @@ from resources.api.encryption import (
 )
 from resources.app import app
 from flask import request, jsonify
-from resources.api.errors import *
+from resources.api.errors import (
+    NoFileInRequest,
+    InvalidFileName,
+    InvalidFileSuffix,
+    FileToBig,
+)
+from resources.config import config
+from resources.flask_event_handlers import get_real_ip
 from resources.logger import logger, LogType
 
 
@@ -61,11 +69,11 @@ def upload_method():
     mkdir(out_directory)
     with open(out_directory + "/" + filename, "wb") as file:
         file.write(encrypt(content, key))
-    with open(out_directory + "/" + "private.key", "w") as file:
+    with open(out_directory + "/" + private_key_file_name, "w") as file:
         file.write(hashed_private_key)
     logger.log(
         LogType.INFO,
-        f"New upload from {request.remote_addr} to {hashed_key}/{filename} with filesize {len(content)}.",
+        f"New upload from {get_real_ip()} to {hashed_key}/{filename} with filesize {len(content)}.",
     )
     return jsonify(
         {
