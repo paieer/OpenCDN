@@ -26,6 +26,7 @@ class Config:
     ALLOWED_FILENAME_CHARACTERS = (
         string.ascii_letters + "1234567890" + ",;.:-_<>!\"§$%&()=?\\`´|#'+*@€.ß "
     )
+    PROXY_REDIRECTING = False
 
 
 config = Config()
