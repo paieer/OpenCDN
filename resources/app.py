@@ -37,6 +37,6 @@ class App:
 
 app = App()
 from resources import flask_event_handlers
-from resources.api import upload, download
+from resources.api import upload, download, authentication_api, version
 
 app.run_app()

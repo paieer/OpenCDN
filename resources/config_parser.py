@@ -49,6 +49,7 @@ def parse_config_object(config, filepath):
                 setattr(config, key, type(getattr(config, key))(new_content))
             elif isinstance(getattr(config, key), RequiredSetting):
                 raise RequiredSettingIsNone()
+    setattr(config, "KEYS", conf["Keys"])
     return config
 
 
@@ -72,6 +73,12 @@ def write_list(list: list) -> str:
 def write_default_config(config, filepath):
     conf = configparser.ConfigParser(interpolation=None)
     conf["ServerConfiguration"] = {}
+    if os.path.exists(filepath):
+        c = configparser.ConfigParser(interpolation=None)
+        c.read(filepath)
+        conf["Keys"] = c["Keys"]
+    else:
+        conf["Keys"] = {}
     for key in dir(config):
         if key.startswith("_") or key.upper() != key:
             continue
