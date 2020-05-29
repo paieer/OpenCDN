@@ -2,7 +2,7 @@ from os import mkdir
 
 from werkzeug.utils import secure_filename
 
-from resources.api.authentication import private_key_file_name
+from resources.api.authentication import private_key_file_name, run_api_with_authentication_required
 from resources.api.encryption import (
     generate_random_key,
     hash_key,
@@ -15,7 +15,7 @@ from resources.api.errors import (
     NoFileInRequest,
     InvalidFileName,
     InvalidFileSuffix,
-    FileToBig,
+    FileTooBig,
 )
 from resources.config import config
 from resources.flask_event_handlers import get_real_ip
@@ -45,6 +45,8 @@ def is_filename_valid(filename: str) -> bool:
 
 @app.flask.route("/upload", methods=["POST"])
 def upload_method():
+    if config.AUTHENTICATION_FOR_UPLOADING_REQUIRED:
+        run_api_with_authentication_required()
     if "file" not in request.files:
         raise NoFileInRequest()
     file = request.files["file"]
@@ -64,7 +66,7 @@ def upload_method():
     hashed_private_key = hash_key(private_key)
     content = file.read()
     if len(content) > config.MAX_FILE_BYTES:
-        raise FileToBig()
+        raise FileTooBig()
     out_directory = get_data_directory() + hashed_key
     mkdir(out_directory)
     with open(out_directory + "/" + filename, "wb") as file:

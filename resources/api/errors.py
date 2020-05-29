@@ -8,7 +8,7 @@ class BasicError(Exception):
     http_return = 500
 
     def to_json(self):
-        return {"id": self.id, "name": self.name, "description": self.description}
+        return {"status": "error", "id": self.id, "name": self.name, "description": self.description}
 
 
 class NoFileInRequest(BasicError):
@@ -46,10 +46,10 @@ class FileDoesNotExists(BasicError):
     http_return = 404
 
 
-class FileToBig(BasicError):
+class FileTooBig(BasicError):
     id = 6
-    name = "file_to_big"
-    description = f"The file is to big: {config.MAX_FILE_BYTES} bytes is maximum."
+    name = "file_too_big"
+    description = f"The file is too big: {config.MAX_FILE_BYTES} bytes is maximum."
     http_return = 403
 
 
@@ -57,4 +57,25 @@ class AccessDenied(BasicError):
     id = 7
     name = "access_denied"
     description = "The access to the requested content was blocked, because you don't have access to the resource."
+    http_return = 403
+
+
+class ActionNeedsAuthenticationToken(BasicError):
+    id = 8
+    name = "action_needs_authentication_token"
+    description = "To run this action, you should set 'authentication_token' to you'r authentication token."
+    http_return = 400
+
+
+class AuthenticationKeyNotFound(BasicError):
+    id = 9
+    name = "authentication_key_not_found"
+    description = "The key with the key identifier was not found."
+    http_return = 404
+
+
+class InvalidAuthenticationToken(BasicError):
+    id = 10
+    name = "invalid_authentication_token"
+    description = "The authentication token is invalid."
     http_return = 403

@@ -27,6 +27,8 @@ class Config:
         string.ascii_letters + "1234567890" + ",;.:-_<>!\"§$%&()=?\\`´|#'+*@€.ß "
     )
     PROXY_REDIRECTING = False
+    RANDOM_AUTHENTICATION_TOKEN_LENGTH = 20
+    AUTHENTICATION_FOR_UPLOADING_REQUIRED = False
 
 
 config = Config()
@@ -34,9 +36,12 @@ config.SERVER_KEY = ""
 for i in range(5):
     config.SERVER_KEY += rand_choice(list(ascii_letters + "1234567890"))
 
+
 if args.reset_configuration:
     write_default_config(config, args.configuration_file)
     print("Configuration has been reset")
 config = run_config(config, args.configuration_file)
+
+
 if "/" in config.ALLOWED_FILENAME_CHARACTERS:
     raise ValueError("'/' can not be a part of ALLOWED_FILENAME_CHARACTERS.")
