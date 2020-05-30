@@ -8,7 +8,7 @@ This module implements the api group management.
 """
 import shutil
 from io import BytesIO
-from os import mkdir, listdir
+from os import mkdir, listdir, remove
 from os.path import exists
 
 from flask import request, jsonify, send_file
@@ -140,7 +140,7 @@ def group(name: str):
         return jsonify({"status": "success"})
 
 
-@app.flask.route("/<string:name>/<string:key>/<string:filename>")
+@app.flask.route("/<string:name>/<string:key>/<string:filename>", methods=["GET", "DELETE"])
 def download_group_file(name: str, key: str, filename: str):
     """Download a group file. Attention: Do not share a group file link, because every file in the group is encrypted
     with the same key. With this file and all filenames the client can download every file from the group. With the
@@ -149,8 +149,18 @@ def download_group_file(name: str, key: str, filename: str):
     :param key: The encrypting key of the group.
     :param filename: The name of the file.
 
+    Download: (GET)
+    ===========
+
     Errors: :class:`FileDoesNotExists`.
-    Returns: The raw content of the file.
+    Returns: error or the raw content of the file.
+
+    Delete: (DELETE)
+    ===========
+
+    Requires: private_key (the private_key of the group).
+    Errors: :class:`FileDoesNotExists`, :class:`AccessDenied`.
+    Returns: error or success json.
     """
     if not is_group_name_valid(name):
         raise FileDoesNotExists()
@@ -159,14 +169,21 @@ def download_group_file(name: str, key: str, filename: str):
     hashed_key = hash_key(key)
     path = f"{get_group_directory()}/{name}/{hashed_key}"
     if not exists(path):
-        raise GroupDoesNotExists()
+        raise FileDoesNotExists()
     file_path = f"{path}/{filename}"
     if not exists(file_path):
         raise FileDoesNotExists()
-    with open(file_path, "rb") as file:
-        content = file.read()
-    decrypted_content = decrypt(content, key)
-    file = BytesIO()
-    file.write(decrypted_content)
-    file.seek(0)
-    return send_file(file, attachment_filename=filename)
+    if request.method == "GET":
+        with open(file_path, "rb") as file:
+            content = file.read()
+        decrypted_content = decrypt(content, key)
+        file = BytesIO()
+        file.write(decrypted_content)
+        file.seek(0)
+        return send_file(file, attachment_filename=filename)
+    elif request.method == "DELETE":
+        if "private_key" not in request.form:
+            raise BadRequest()
+        private_key = request.form["private_key"]
+        authenticate_group(name, private_key)
+        remove(file_path)
