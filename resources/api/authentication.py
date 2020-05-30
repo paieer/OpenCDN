@@ -1,3 +1,11 @@
+"""
+open_cdn.server
+~~~~~~~~~~~~
+
+This module implements the authentication.
+:copyright: (c) 2020 by AdriBloober.
+:license: GNU General Public License v3.0
+"""
 from os import remove, rmdir
 from os.path import exists
 
@@ -20,16 +28,28 @@ from resources.config import config
 
 private_key_file_name = "private.key"
 
+"""All authentication token will saved in this list."""
 authentication_tokens = []
 
 
-def parse_authentication(key, filename):
+def parse_authentication(key: str, filename: str):
+    """Parses the authentication (private_key) from a request.
+    Errors: :class:`FileDoesNotExists`, :class:`AccessDenied`.
+    :param key: The key of the target file.
+    :param filename: The filename of the file.
+    :return
+    """
     if "private_key" not in request.form:
         raise BadRequest()
     authenticate(hash_key(key), filename, request.form["private_key"])
 
 
-def authenticate(key, filename, private_key):
+def authenticate(key: str, filename: str, private_key: str):
+    """Authenticates with the private_key
+    :param key: The key of the target file.
+    :param filename: The filename of the file.
+    :param private_key: The private_key of the file.
+    """
     if not exists(get_data_directory() + key + "/" + filename):
         raise FileDoesNotExists()
     if not exists(get_data_directory() + key + "/" + private_key_file_name):
@@ -39,14 +59,23 @@ def authenticate(key, filename, private_key):
             raise AccessDenied()
 
 
-def delete_file(key, filename):
+def delete_file(key: str, filename: str):
+    """Deletes a file (not authenticated)
+    :param key: The key of the file.
+    :param filename: The filename of the file.
+    :return:
+    """
     key_path = get_data_directory() + hash_key(key)
     remove(key_path + "/" + filename)
     remove(key_path + "/" + private_key_file_name)
     rmdir(key_path)
 
 
-def create_authentication_token(key_identifier):
+def create_authentication_token(key_identifier: str) -> str:
+    """Creates new encrypted authentication token.
+    :param key_identifier: The identifier of the key (The key variable key name on the server configuration).
+    :return:
+    """
     if key_identifier not in config.KEYS:
         raise AuthenticationKeyNotFound()
     key = RSA.import_key(base64.b64decode(config.KEYS[key_identifier].encode("utf-8")))
@@ -58,7 +87,11 @@ def create_authentication_token(key_identifier):
     return encrypted_token
 
 
-def check_token(hashed_token):
+def check_token(hashed_token: str) -> bool:
+    """Checks if a token is valid.
+    :param hashed_token: The hashed authentication token.
+    :return: True if the token is valid and False if the token is invalid.
+    """
     for token in authentication_tokens:
         if token == hashed_token:
             return True
@@ -66,6 +99,9 @@ def check_token(hashed_token):
 
 
 def run_api_with_authentication_required():
+    """Runs the api with authentication requirement.
+    Errors: :class:`ActionNeedsAuthenticationToken`, :class:`InvalidAuthenticationToken`.
+    """
     if "authentication_token" not in request.form:
         raise ActionNeedsAuthenticationToken()
     if not check_token(hash_key(request.form["authentication_token"])):
@@ -73,4 +109,7 @@ def run_api_with_authentication_required():
 
 
 def delete_authentication_token(token):
+    """Deletes an authentication token
+    :param token: The authentication token to be deleted.
+    """
     authentication_tokens.remove(hash_key(token))

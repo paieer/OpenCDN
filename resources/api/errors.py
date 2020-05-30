@@ -1,3 +1,12 @@
+"""
+open_cdn.server
+~~~~~~~~~~~~
+
+This module implements the error management.
+:copyright: (c) 2020 by AdriBloober.
+:license: GNU General Public License v3.0
+"""
+
 from resources.config import config
 
 
@@ -8,7 +17,12 @@ class BasicError(Exception):
     http_return = 500
 
     def to_json(self):
-        return {"status": "error", "id": self.id, "name": self.name, "description": self.description}
+        return {
+            "status": "error",
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
 
 
 class NoFileInRequest(BasicError):
@@ -79,3 +93,10 @@ class InvalidAuthenticationToken(BasicError):
     name = "invalid_authentication_token"
     description = "The authentication token is invalid."
     http_return = 403
+
+
+class InternalServerError(BasicError):
+    id = 11
+    name = "internal_server_error"
+    description = "An unknown error occurred while answering the request."
+    http_return = 500

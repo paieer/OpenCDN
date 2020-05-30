@@ -1,3 +1,12 @@
+"""
+open_cdn.server
+~~~~~~~~~~~~
+
+This module implements the cli argument parser.
+:copyright: (c) 2020 by AdriBloober.
+:license: GNU General Public License v3.0
+"""
+
 import sys
 from argparse import ArgumentParser
 
