@@ -55,6 +55,6 @@ app = App()
 # import api definition files.
 
 from resources import flask_event_handlers
-from resources.api import upload, download, authentication_api, version
+from resources.api import upload, download, authentication_api, version, groups
 
 app.run_app()

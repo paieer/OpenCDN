@@ -100,3 +100,31 @@ class InternalServerError(BasicError):
     name = "internal_server_error"
     description = "An unknown error occurred while answering the request."
     http_return = 500
+
+
+class GroupDoesNotExists(BasicError):
+    id = 12
+    name = "group_does_not_exists"
+    description = "The group does not exists."
+    http_return = 404
+
+
+class GroupAlreadyExists(BasicError):
+    id = 13
+    name = "group_already_exists"
+    description = "The group with these attributes already exists."
+    http_return = 400
+
+
+class InvalidGroupName(BasicError):
+    id = 14
+    name = "invalid_group_name"
+    description = "The group name is invalid."
+    http_return = 403
+
+
+class FileAlreadyExists(BasicError):
+    id = 15
+    name = "file_already_exists"
+    description = "The file already exists."
+    http_return = 400

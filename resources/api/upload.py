@@ -8,12 +8,13 @@ This module implements the api uploading.
 """
 
 from os import mkdir
+from os.path import exists
 
 from werkzeug.utils import secure_filename
 
 from resources.api.authentication import (
     private_key_file_name,
-    run_api_with_authentication_required,
+    run_api_with_authentication_required, authenticate_group, get_group_directory,
 )
 from resources.api.encryption import (
     generate_random_key,
@@ -21,13 +22,14 @@ from resources.api.encryption import (
     get_data_directory,
     encrypt,
 )
+from resources.api.groups import is_group_name_valid
 from resources.app import app
 from flask import request, jsonify
 from resources.api.errors import (
     NoFileInRequest,
     InvalidFileName,
     InvalidFileSuffix,
-    FileTooBig,
+    FileTooBig, BadRequest, GroupDoesNotExists, AccessDenied, FileAlreadyExists,
 )
 from resources.config import config
 from resources.flask_event_handlers import get_real_ip
@@ -92,8 +94,19 @@ def upload_method():
         raise InvalidFileSuffix()
     if not is_filename_valid(file.filename):
         raise InvalidFileName()
+    group = None
+    key = None
+    if "group" in request.form:
+        if "key" not in request.form or "private_key" not in request.form:
+            raise BadRequest()
+        group = request.form["group"]
+        key = request.form["key"]
+        if not is_group_name_valid(group):
+            raise GroupDoesNotExists()
+        authenticate_group(group, request.form["private_key"])
     filename = secure_filename(file.filename)
-    key = generate_random_key(config.RANDOM_KEY_LENGTH) # The encrypting key
+    if key is None:
+        key = generate_random_key(config.RANDOM_KEY_LENGTH) # The encrypting key
     if "private_key" in request.form:
         private_key = request.form["private_key"]
     else:
@@ -103,21 +116,45 @@ def upload_method():
     content = file.read()
     if len(content) > config.MAX_FILE_BYTES:
         raise FileTooBig()
-    out_directory = get_data_directory() + hashed_key
-    mkdir(out_directory)
-    with open(out_directory + "/" + filename, "wb") as file:
-        file.write(encrypt(content, key))
-    with open(out_directory + "/" + private_key_file_name, "w") as file:
-        file.write(hashed_private_key)
-    logger.log(
-        LogType.INFO,
-        f"New upload from {get_real_ip()} to {hashed_key}/{filename} with filesize {len(content)}.",
-    )
-    return jsonify(
-        {
-            "key": key,
-            "hashed_key": hashed_key,
-            "filename": filename,
-            "private_key": private_key,
-        }
-    )
+    if group is None:
+        out_directory = get_data_directory() + hashed_key
+        mkdir(out_directory)
+        with open(out_directory + "/" + filename, "wb") as file:
+            file.write(encrypt(content, key))
+        with open(out_directory + "/" + private_key_file_name, "w") as file:
+            file.write(hashed_private_key)
+        logger.log(
+            LogType.INFO,
+            f"New upload from {get_real_ip()} to {hashed_key}/{filename} with filesize {len(content)}.",
+        )
+        return jsonify(
+            {
+                "key": key,
+                "hashed_key": hashed_key,
+                "filename": filename,
+                "private_key": private_key,
+            }
+        )
+    else:
+        files_directory = f"{get_group_directory()}/{group}/{hashed_key}"
+        if not exists(files_directory):
+            raise GroupDoesNotExists()
+        if exists(files_directory + "/" + filename):
+            raise FileAlreadyExists()
+        with open(files_directory + "/" + filename, "wb") as file:
+            file.write(encrypt(content, key))
+
+        logger.log(
+            LogType.INFO,
+            f"New upload from {get_real_ip()} to (group) {group}/{hashed_key}/{filename} with filesize {len(content)}.",
+        )
+        return jsonify(
+            {
+                "key": key,
+                "hashed_key": hashed_key,
+                "filename": filename,
+                "private_key": private_key,
+                "group": group
+            }
+        )
+

@@ -22,7 +22,7 @@ class Config:
     HOST = "127.0.0.1"
     """The Port of the server."""
     PORT = 80
-    """If THREADED enabled, the flask server will be started with threaded=True"""
+    """If THREADED enabled, the flask server will be started with threaded=True."""
     THREADED = True  # recommend
     """Debug is not recommend, because the server have own error management."""
     DEBUG = False  # do not use debug in production
@@ -56,6 +56,10 @@ class Config:
     ALLOWED_FILENAME_CHARACTERS = (
         string.ascii_letters + "1234567890" + ",;.:-_<>!\"§$%&()=?\\`´|#'+*@€.ß "
     )
+    """Allowed Characters for the group name."""
+    ALLOWED_GROUPNAME_CHARACTERS = (
+        string.ascii_letters + "1234567890" + ",;.:-_<>!\"§$%&()=?\\|#'+*@€.ß "
+    )
     """If proxy redirecting is enabled, the log will not print the remote_addr, but the CF-Connecting-IP or the 
     X-Forwarded-For header. """
     PROXY_REDIRECTING = False
@@ -77,5 +81,5 @@ if args.reset_configuration:
 config = run_config(config, args.configuration_file)
 
 
-if "/" in config.ALLOWED_FILENAME_CHARACTERS:
-    raise ValueError("'/' can not be a part of ALLOWED_FILENAME_CHARACTERS.")
+if "/" in config.ALLOWED_FILENAME_CHARACTERS or "/" in config.ALLOWED_GROUPNAME_CHARACTERS:
+    raise ValueError("'/' can not be a part of ALLOWED_FILENAME_CHARACTERS or ALLOWED_GROUPNAME_CHARACTERS.")
