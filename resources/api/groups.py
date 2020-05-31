@@ -94,15 +94,12 @@ def group(name: str):
         hashed_key = hash_key(key)
         private_key = request.form["private_key"]
         authenticate_group(name, private_key)
-        informations = {
-            "hashed_key": hashed_key,
-            "files": [],
-        }
         if not exists(path + "/" + hashed_key):
             raise GroupDoesNotExists()
-        for f in listdir(path + "/" + hashed_key):
-            informations["files"].append(f)
-            break
+        informations = {
+            "hashed_key": hashed_key,
+            "files": listdir(path + "/" + hashed_key),
+        }
         return jsonify(informations)
     elif request.method == "POST":
         if config.AUTHENTICATION_FOR_UPLOADING_REQUIRED:
@@ -140,7 +137,9 @@ def group(name: str):
         return jsonify({"status": "success"})
 
 
-@app.flask.route("/<string:name>/<string:key>/<string:filename>", methods=["GET", "DELETE"])
+@app.flask.route(
+    "/<string:name>/<string:key>/<string:filename>", methods=["GET", "DELETE"]
+)
 def download_group_file(name: str, key: str, filename: str):
     """Download a group file. Attention: Do not share a group file link, because every file in the group is encrypted
     with the same key. With this file and all filenames the client can download every file from the group. With the
@@ -187,3 +186,4 @@ def download_group_file(name: str, key: str, filename: str):
         private_key = request.form["private_key"]
         authenticate_group(name, private_key)
         remove(file_path)
+        return jsonify({"status": "success"})

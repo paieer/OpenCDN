@@ -74,6 +74,10 @@ def upload_method():
     Optional: If authentication is enabled, you must set the authentication form values.
               You can set 'private_key' to your private_key. If 'private_key' is not set,
               the server would generate a random private_key.
+              Group Uploading:
+              If you would like to update a file in a group you must hand over the 'group', 'private_key' and the 'key'
+              of the group. The 'group' parameter is the group name. If you use group uploading following errors
+              can be thrown: :class:`GroupDoesNotExists`, :class:`AccessDenied`.
     Errors: :class:`ActionNeedsAuthenticationToken`, :class:`InvalidAuthenticationToken`, :class:`NoFileInRequest`,
             :class:`InvalidFileName`, :class:`InvalidFileSuffix`, :class:`InvalidFileName`, :class:`FileTooBig`.
     Return: errors or json {
