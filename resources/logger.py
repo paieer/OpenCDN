@@ -1,3 +1,13 @@
+"""
+open_cdn.server
+~~~~~~~~~~~~
+
+This module implements the logger.
+:copyright: (c) 2020 by AdriBloober.
+:license: GNU General Public License v3.0
+"""
+
+
 from datetime import datetime
 from enum import Enum
 from os.path import exists
@@ -8,12 +18,15 @@ from resources.argument_parser import args
 
 
 class TerminalColors:
+    """Define terminal colors to print colored prompt."""
+
     WARNING = "\033[93m"
     FAIL = "\033[91m"
     ENDC = "\033[0m"
 
 
 def get_log_directory() -> str:
+    """Get the log directory with a '/' at the end."""
     log_dir = config.LOG_DIRECTORY
     if log_dir == "" or log_dir is None:
         log_dir = "logs/"
@@ -27,6 +40,7 @@ def get_log_directory() -> str:
 
 
 def parse_log_actions():
+    """If the user called any log action in the cli, the log action would be ran here."""
     log_dir = get_log_directory()
     if args.clear_all_logs:
         for file in listdir(log_dir):
@@ -40,6 +54,8 @@ def parse_log_actions():
 
 
 class LogType(Enum):
+    """LogTypes: If the server was not started in verbose mode, INFO logs are not output via stdout."""
+
     INFO = 0
     WARNING = 1
     ERROR = 2
@@ -48,6 +64,11 @@ class LogType(Enum):
 
     @staticmethod
     def parse_to_string(log_type, upper=True):
+        """Gets the logtype as string.
+        :param log_type:
+        :param upper: Returns the string in uppercase.
+        :return: string
+        """
         content = "u"
         if log_type == LogType.INFO:
             content = "i"
@@ -65,7 +86,12 @@ class LogType(Enum):
 
 
 class Logger:
+    """Logger with log file."""
+
     def write_log(self, content: str):
+        """Write raw log content
+        :param content: The content to be written.
+        """
         if not content.endswith("\n"):
             content += "\n"
         with open(self.log_file, "a") as file:
@@ -80,6 +106,11 @@ class Logger:
         self.write_log("--- Start of log ---")
 
     def log(self, log_type: LogType, content: str, no_stdout=False):
+        """Log something.
+        :param log_type: The type of the log message.
+        :param content: The content for logging.
+        :param no_stdout: Enable it, and the log message would be not logged.
+        """
         content = f"{LogType.parse_to_string(log_type)}: {content}\n"
         self.write_log(content)
         if (self.verbose or log_type != LogType.INFO) and not no_stdout:
