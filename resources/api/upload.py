@@ -92,7 +92,7 @@ def upload_method():
     if "file" not in request.files:
         raise NoFileInRequest()
     file = request.files["file"]
-    if file.filename == "" or "/" in file.filename:
+    if file.filename == "" or "/" in file.filename or "\" in file.filename: # PTA protection
         raise InvalidFileName()
     if not is_file_suffix_valid(file.filename):
         raise InvalidFileSuffix()
